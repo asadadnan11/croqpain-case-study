@@ -1,0 +1,257 @@
+---
+title: "case_study_2"
+format: html
+editor: visual
+---
+
+### Loading the Data
+
+```{r}
+library(ggplot2)
+load("~/Desktop/Statistical Analysis/Case_Study_2/CroqPain_new.rda")
+load("~/Desktop/Statistical Analysis/Case_Study_2/CroqPainFix.rda")
+```
+
+## 1. Visualization
+
+In linear regression, data distribution and relationship are critical. In particular, histogram is to examine if the observations are skewed and scatter plot is to examine if the relationship is linear. Examine histograms and scatter plots for the variables of your interests. If there are some concerns, try different wrangling to mitigate the concerns.
+
+```{r}
+# P15 & Total Population Viz
+library(ggplot2)
+ggplot(data = CroqPaiFix, aes(x=total, y=P15)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm')
+# Linearity of NREST & EARN ggplot
+ggplot(data = CroqPaiFix, aes(NREST, EARN)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm') +
+  theme_minimal()
+# Linearity of INC (avg income) & EARN 
+ggplot(data = CroqPaiFix, aes(INC, EARN)) + 
+  geom_point() + 
+  geom_smooth(method = 'lm')
+
+# Histogram of total population 
+hist(CroqPaiFix$total)
+# Histogram of Monthly Rent per Square Meter in Area (PRICE)
+hist(CroqPaiFix$PRICE)
+# Histogram of Capital Investment 
+hist(CroqPaiFix$K)
+# Histogram of Competition in Area 
+hist(CroqPaiFix$COMP)
+# Histogram of Not Restaurant Competition
+hist(CroqPaiFix$NREST)
+# Histogram of Income
+hist(CroqPaiFix$INC)
+# Histogram of Size
+hist(CroqPaiFix$SIZE)
+
+# Testing Histograms with log function 
+hist(log(CroqPaiFix$NREST))
+hist(log(CroqPaiFix$SIZE))
+hist(log(CroqPaiFix$K))
+hist(log(CroqPaiFix$INC))
+hist(log(CroqPaiFix$total))
+
+ggplot(CroqPaiFix, aes(log(total), EARN)) +
+  geom_point() +
+  theme_minimal()
+ggplot(CroqPaiFix, aes(total, EARN)) +
+  geom_point() +
+  theme_minimal()
+```
+
+Look at correlations between variables and try to identify sources of concern. In R, you can use cor function. Pay particular attention to the correlation for total and P15 through P55. Do these correlations make sense to you?
+
+```{r}
+# total population and P_age correlation 
+P15_cor <- cor(CroqPaiFix$total, CroqPaiFix$P15)
+P25_cor <- cor(CroqPaiFix$total, CroqPaiFix$P25)
+P35_cor <- cor(CroqPaiFix$total, CroqPaiFix$P35)
+P45_cor <- cor(CroqPaiFix$total, CroqPaiFix$P45)
+P55_cor <- cor(CroqPaiFix$total, CroqPaiFix$P55)
+earn_cor <- cor(CroqPaiFix$total, CroqPaiFix$EARN)
+comp_cor <- cor(CroqPaiFix$total, CroqPaiFix$COMP)
+ncomp_cor <- cor(CroqPaiFix$total, CroqPaiFix$NCOMP)
+nrest_cor <- cor(CroqPaiFix$total, CroqPaiFix$NREST)
+
+# Age groups P15, P35, P45 correlation are the same and very high (0.96)
+# Suggesting multicollinearity 
+```
+
+Create new variables by dividing EARN, P15, P25, P35, P45, P55, COMP, NCOMP, and NREST by total. These new variables are per capita. Examine correlations with the transformed. Do these correlations make sense to you?
+
+```{r}
+# Calculate the proportions/per capita using lapply 
+per_capita <- c('EARN', 'P15', 'P25', 'P35', 'P45', 'P55', 'COMP', 'NCOMP', 'NREST')
+CroqPaiFix[paste0(per_capita, 'per_capita')] <- lapply(CroqPaiFix[per_capita], function(x) x/CroqPaiFix$total)
+
+all_cor <- cor(CroqPaiFix)
+
+```
+
+If you have more ideas for a better model, please feel free to create new variables. Examine them visually before using them. =
+
+## 2-1. Building Models (Part a)
+
+Consider all observations in CroqPainFix.
+
+Michel’s first model is shown in Table 6.27 on page 305 with some concerns. Try to improve the model that does not violate any of the basic assumptions of regression but has good predictive power. In short, you should carefully choose the explanatory variables. What are the explanatory variables of your choice?
+
+When you run regressions, be sure to check multicollinearity. If you want, you can try different variable selection algorithms. However, be critical and make a decision about the final model to recommend for Croq’Pain.
+
+```{r}
+# The Original Model 
+lm1 <- lm(EARN ~  SIZE + EMPL + total + P15 + P25 + P35 + P45 + 
+            P55 + INC + COMP + NCOMP + NREST + PRICE + CLI, 
+          data = CroqPaiFix) 
+summary(lm1)
+# Validation of the Original Model 
+
+# Checking for multicollinearity in the original model
+car::vif(lm1)
+# VIF that are greater than 5 -> total, P15, P25, P35, P45, P55
+# Lots of multicollinearity! 
+
+#Q-Q Plot 
+qqnorm(lm1$residuals)
+qqline(lm1$residuals)
+# Density of Residuals 
+plot(density(x= lm1$residuals))
+# Not a normal distribution
+
+# Checking random distribution of residuals
+plot(lm1$fitted.values, lm1$residuals)
+# No evidence of heteroscedacity 
+
+# Autocorrelation 
+plot(lm1$residuals, type = 'line')
+# No autocorrelation 
+```
+
+Trial & Error of different linear models
+
+```{r}
+lm2 <- lm(EARN ~ COMP + PRICE + EMPL + CLI + NCOMP + P35per_capita + K, data = CroqPaiFix)
+summary(lm2)
+lm3 <- lm(EARN ~ K + SIZE + INC + NREST + total, data = CroqPaiFix)
+summary(lm3)
+lm7 <- lm(EARN ~ log(K) + SIZE + INC + NREST + total + COMP, data = CroqPaiFix)
+summary(lm7)
+lm8 <- lm(EARN ~ K + SIZE + log(INC) + NREST + total, data = CroqPaiFix)
+summary(lm8)
+
+
+# Our linear model:
+lm4 <- lm(EARN ~ K + log(SIZE) + INC + log(NREST) + log(total), data = CroqPaiFix)
+summary(lm4)
+```
+
+### Validating the Linear Model
+
+```{r}
+# Our Linear model 
+lm4 <- lm(EARN ~ K + log(SIZE) + INC + log(NREST) + log(total), data = CroqPaiFix)
+
+# Validating the model 
+# Checking the linearity 
+ggplot(CroqPaiFix, aes(K, EARN)) + 
+  geom_point() +
+  geom_smooth(method = lm, linetype='dashed') +
+  theme_bw()
+ggplot(CroqPaiFix, aes(log(SIZE), EARN)) + 
+  geom_point() +
+  geom_smooth(method = lm, linetype='dashed') +
+  theme_bw()
+ggplot(CroqPaiFix, aes(INC, EARN)) + 
+  geom_point() +
+  geom_smooth(method = lm, linetype='dashed') +
+  theme_bw()
+ggplot(CroqPaiFix, aes(log(NREST), EARN)) + 
+  geom_point() +
+  geom_smooth(method = loess, color='red',linetype='dashed') +
+  theme_bw()
+ggplot(CroqPaiFix, aes(log(total), EARN)) + 
+  geom_point() +
+  geom_smooth(method = loess, color='red',linetype='dashed') +
+  theme_bw()
+
+# Checking the Normality of the errors:
+# Normal Q-Q Plot
+qqnorm(lm4$residuals)
+qqline(lm4$residuals)
+# Density 
+plot(density(x= lm4$residuals))
+# Error follows Normal Distribution 
+
+# Checking for multicollinearity in linear model
+car::vif(lm4)
+# No multicollinearity in the linear model
+
+# Checking random distribution of residuals
+plot(lm4$fitted.values, lm4$residuals)
+# No evidence of heteroscedacity 
+
+# Autocorrelation 
+plot(lm4$residuals, type = 'line')
+# No autocorrelation 
+
+```
+
+In 2-1, you build a model using all observations in CroqPainFix. Michel wants to validate its usefulness (or accuracy) with existing data. Split CroqPainFix into the following two data sets.
+
+CroqPainFix_50: The 50 stores opened up prior to 1994, i.e., STOR\<=50. CroqPainFix_10: The 10 stores opened in the first half of 1994, i.e., STOR\>50. Using CroqPainFix_50, re-estimate your model. That is, keep your explanatory variables from 2-1 and re-estimate their coefficients with the data set of 50 stores.
+
+With this newly estimated model, predict the performances of the 10 stores in CroqPainFix_10. Using Croq’Pain’s performance ratio target of 26%, which of the ten stores would you have opened in 1994 according to your model?
+
+```{r}
+# Creating New Data Frames of Stores opened before 1994 & in 1994
+CroqPainFix_50 <- CroqPaiFix[CroqPaiFix$STOR<=50, ]
+CroqPainFix_10 <- CroqPaiFix[CroqPaiFix$STOR>50, ]
+
+# Linear Regression Model of first 50 stores opened
+lm4_50 <- lm(EARN ~ K + log(SIZE) + INC + log(NREST) + log(total), data = CroqPainFix_50)
+summary(lm4_50)
+
+# Predicting Earnings of stores opened in 1994  
+CroqPainFix_10$predict <- predict.lm(lm4_50, CroqPainFix_10)
+CroqPainFix_10$predict_OriginalModel <- predict.lm(lm1, CroqPainFix_10)
+
+# Predicted Performance Ratio of stores opened in 1994 
+CroqPainFix_10$Predicted_Performance_OriginalModel <- CroqPainFix_10$predict_OriginalModel / CroqPainFix_10$K
+CroqPainFix_10$PredictedPerformance <- CroqPainFix_10$predict / CroqPainFix_10$K
+
+# Actual Performance Ratio of stores opened in 1994 
+CroqPainFix_10$ActPerformance <- CroqPainFix_10$EARN / CroqPainFix_10$K
+
+# Original Model's Predicted Performance Ratio:Selected Stores 
+CroqPainFix_10[CroqPainFix_10$Predicted_Performance_OriginalModel >= 0.26, ]
+
+# Our Linear Model Predicted Performance Ratio: Selected Stores
+CroqPainFix_10[CroqPainFix_10$PredictedPerformance >= 0.26, ]
+
+# Stores 51, 57 & 60 based on our regression model would be the ones selected
+# to open in 1994. 
+# Store 58 is the top earning store but based on their performance ratio of 0.22 or
+# 22% (Earnings & Capital Investment), they are not the top performing store due to a
+# high capital investment. 
+
+```
+
+3.  Prediction (Part c)
+
+As you validated the model (i.e., a selection of explanatory variables), let’s use the most complete estimates using CroqPainFix. With this complete model, you need to recommend which new locations Croq’Pain should open its stores among 10 locations in Table 6.28 or CroqPain_new.rda. Which locations would you recommend?
+
+```{r}
+# Predicting the earnings of the possible stores to open in 1996: 
+CroqPain_new$predict <- predict.lm(lm4, CroqPain_new)
+
+# The performance ratio of possible stores to open 
+CroqPain_new$performance <- CroqPain_new$predict / CroqPain_new$K
+
+CroqPain_new[CroqPain_new$performance >= 0.26, ]
+
+# Toulouse, Montpellier, and Dijon are the recommended stores to open based on our
+# regression model. 
+```
