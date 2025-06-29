@@ -1,26 +1,26 @@
-# 🥖 Croq'Pain Case Study: Optimizing Store Locations with Regression
+# Croq'Pain Case Study: Optimizing Store Locations with Regression
 
 An applied business analytics project that uses multivariate regression modeling to predict store performance and recommend ideal locations for French restaurant chain **Croq’Pain** to expand in 1996.
 
 ---
 
-## 📊 Project Summary
+## Project Summary
 
-### 🎯 Objective
+### Objective
 **Goal:** Identify optimal locations for new Croq’Pain stores by correcting errors in the original regression model and predicting store performance with an improved linear model.
 
 ---
 
-## 🧠 Problem & Solution
+## Problem & Solution
 
-### ❌ Original Model Issues
+### Original Model Issues
 - **Multicollinearity:** Highly correlated explanatory variables (P15, P35, P45) distorted the original regression.
 - **Heteroskedasticity:** Residuals violated homoscedasticity, suggesting inconsistency in model variance.
 - **Insignificant Variables:** Too many variables with high p-values were included, reducing model efficiency.
 
 ---
 
-### ✅ Improved Model
+### Improved Model
 We refined the model using:
 - New explanatory variables:
   - Capital investment (`K`)
@@ -36,20 +36,20 @@ We refined the model using:
 
 ---
 
-## 📈 Results & Recommendations
+## Results & Recommendations
 
 - **Model Performance:**
   - R-squared: **0.8016**
   - Adjusted R-squared: **0.7848**
 
 - **New Store Location Recommendations:**
-  - 🏙️ Toulouse: 42.1% projected performance ratio
-  - 🏙️ Montpellier: 31.9% projected performance ratio
-  - 🏙️ Dijon: 34.6% projected performance ratio
+  - Toulouse: 42.1% projected performance ratio
+  - Montpellier: 31.9% projected performance ratio
+  - Dijon: 34.6% projected performance ratio
 
 ---
 
-## 📚 Validation Steps
+## Validation Steps
 
 1. **Multicollinearity Test:** Variance Inflation Factor (VIF) values below 5 ensured no collinearity.
 2. **Residual Analysis:** Homoscedasticity confirmed using residual vs. fitted plots.
@@ -58,21 +58,21 @@ We refined the model using:
 
 ---
 
-## 📂 Files in Repository
+## Files in Repository
 
-- 📄 `CroqPain_Case_Study.qmd` — Original analysis and model building process
-- 📊 `CroqPain_Executive_Summary.pdf` — Annotated executive summary with findings
-- 📈 `datasets/` — Cleaned dataset for replication
+- `CroqPain_Case_Study.qmd` — Original analysis and model building process
+- `CroqPain_Executive_Summary.pdf` — Annotated executive summary with findings
+- `datasets/` — Cleaned dataset for replication
 
 ---
 
-## 📬 Authors
+## Authors
 
 **Asad Adnan**, Charley Conroy, Elisabeth Gangwer, Yun-Shiuan Hsu  
 *Master's in Business Analytics, University of Notre Dame*
 
 ---
 
-## 🔗 References
+## References
 - Original dataset from Croq'Pain's internal historical data
 - Case study part of the **Business Analytics Capstone Project** at Notre Dame
